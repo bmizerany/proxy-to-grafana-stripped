@@ -50,6 +50,7 @@ import (
 var (
 	backendAddr = flag.String("backend-addr", "", "Address of the Grafana server served over HTTP, in host:port format. Typically localhost:nnnn.")
 	useHTTPS    = flag.Bool("use-https", false, "Serve over HTTPS via your *.ts.net subdomain if enabled in Tailscale admin.")
+	hostname    = flag.String("hostname", "", "the hostname to use for ssl certs")
 )
 
 func main() {
@@ -82,7 +83,6 @@ func main() {
 
 		go func() {
 			// wait for tailscale to start before trying to fetch cert names
-			var hostname string
 			for i := 0; i < 60; i++ {
 				st, err := tailscale.Status(context.Background())
 				if err != nil {
@@ -90,7 +90,6 @@ func main() {
 				} else {
 					log.Printf("tailscale status: %v", st.BackendState)
 					if st.BackendState == "Running" {
-						hostname = st.Self.HostName
 						break
 					}
 				}
@@ -101,9 +100,9 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			name, ok := tailscale.ExpandSNIName(context.Background(), hostname)
+			name, ok := tailscale.ExpandSNIName(context.Background(), *hostname)
 			if !ok {
-				log.Fatalf("can't get hostname (based on %q) for https redirect", hostname)
+				log.Fatalf("can't get hostname (based on %q) for https redirect", *hostname)
 			}
 			if err := http.Serve(l80, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				http.Redirect(w, r, fmt.Sprintf("https://%s", name), http.StatusMovedPermanently)
