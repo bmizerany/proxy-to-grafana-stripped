@@ -1,4 +1,4 @@
-module proxy-to-grafana-stripped
+module github.com/bmizerany/proxy-to-grafana-stripped
 
 go 1.18
 
