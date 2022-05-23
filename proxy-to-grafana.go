@@ -103,7 +103,7 @@ func main() {
 			}
 			name, ok := tailscale.ExpandSNIName(context.Background(), hostname)
 			if !ok {
-				log.Fatalf("can't get hostname for https redirect")
+				log.Fatalf("can't get hostname (based on %q) for https redirect", hostname)
 			}
 			if err := http.Serve(l80, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				http.Redirect(w, r, fmt.Sprintf("https://%s", name), http.StatusMovedPermanently)
